@@ -49,24 +49,18 @@ class Camera extends React.Component {
         this.setState({
             statusOfVideo: "process",
         });
-    }
-
-    onResumeVideo = () => {
-        this.setState({
-            statusOfVideo: "process",
-        });
-    }
-
-    onPauseVideo = () => {
-        this.setState({
-            statusOfVideo: "pause",
-        });
+        this.camera.recordAsync()
+            .then(data => {
+                this.save(data.uri)
+                    .then();
+            });
     }
 
     onStopVideo = () => {
         this.setState({
             statusOfVideo: "",
         });
+        this.camera.stopRecording();
     }
 
     onChangeCamera = () => {
@@ -94,21 +88,6 @@ class Camera extends React.Component {
         });
     }
 
-    takeVideo = () => {
-        if(this.state.video){
-            this.camera.recordAsync()
-                .then(data => {
-                    this.save(data.uri)
-                        .then()
-                });
-        } else {
-            this.camera.stopRecording();
-        }
-        this.setState({
-            video: !this.state.video,
-        });
-    }
-
     renderCamera() {
         return (
             <View style={styles.container}>
@@ -129,6 +108,7 @@ class Camera extends React.Component {
                     style={styles.preview}
                     type={RNCamera.Constants.Type[this.state.typeOfCamera]}
                     flashMode={RNCamera.Constants.FlashMode[this.state.light]}
+                    zoom={0.2}
                 >
                 </RNCamera>
                 {this.state.functionality === "photo" ?
@@ -142,23 +122,13 @@ class Camera extends React.Component {
                         </TouchableOpacity>
                     </View>) :
                     (<View style={{ flex: 0, flexDirection: 'row', justifyContent: 'space-between' }}>
-                        {this.state.statusOfVideo === "" ? (
-                                <TouchableOpacity onPress={this.onChangeCamera} style={styles.changeCamera}>
-                                    <Icon name={"undo"} size={30} color={"white"}/>
-                                </TouchableOpacity>
-                        ) : (
-                            <View style={{padding: 15, paddingHorizontal: 20,margin: 20, width: 80}}>
-                                {this.state.statusOfVideo === "process" ? (
-                                    <TouchableOpacity onPress={this.onPauseVideo} style={styles.statusOfVideo}>
-                                        <Icon name={"pause"} size={30} color={"white"}/>
-                                    </TouchableOpacity>
-                                ) : (
-                                    <TouchableOpacity onPress={this.onResumeVideo} style={styles.statusOfVideo}>
-                                        <Icon name={"play"} size={30} color={"white"}/>
-                                    </TouchableOpacity>
-                                )
-                                }
-                            </View>)}
+                            <TouchableOpacity
+                                onPress={this.onChangeCamera}
+                                style={styles.changeCamera}
+                                disabled={this.state.statusOfVideo}
+                            >
+                                <Icon name={"undo"} size={30} color={this.state.statusOfVideo ? "black" : "white"}/>
+                            </TouchableOpacity>
                             {this.state.statusOfVideo === "" ? (
                                 <TouchableOpacity onPress={this.onStartVideo} style={styles.video}/>
                             ) : (
@@ -200,6 +170,7 @@ class Camera extends React.Component {
     }
 
     render() {
+        console.log(this.state.statusOfVideo);
         return (
             <View style={styles.container}>
                 {this.state.path ? this.renderImage() : this.renderCamera()}
